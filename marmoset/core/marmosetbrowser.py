@@ -74,19 +74,20 @@ class Marmoset():
         @return: boolean
         """
         response = self.browser.open(self.base_url)
+
         if self.browser.geturl().find("cas") > -1:
-            self.browser.select_form(nr=0)
-            
-            if not username and not password:
+            if username is None and password is None:
                 username, password = self.login()
 
+            self.browser.select_form(nr=0)
             self.browser.form['username'] = username
             self.browser.form['password'] = password
+
             response = self.browser.submit()
 
             if self.browser.geturl().find("cas") > -1:
                 return False
-            
+
             self.browser.save_cookies()
 
         user = 'campusUID'
@@ -94,6 +95,9 @@ class Marmoset():
         soup = BeautifulSoup(content)
         found = False
         nr = 0
+
+        if username is None:
+            username = self.username
 
         for form in soup.find_all('form'):
             inp = form.find(lambda tag: dict(tag.attrs)['name'] == user)
@@ -149,7 +153,8 @@ class Marmoset():
         @return: None
         """
         response = self.browser.reload()
-        soup = BeautifulSoup(response.read())
+        contents = response.read()
+        soup = BeautifulSoup(contents)
         link = None
 
         for group in soup.find_all('tr'):
@@ -458,5 +463,5 @@ def write_zip(name, files):
         for f in files:
             if f == name:
                 continue
-            myzip.write(f)
+            myzip.write(f, arcname=os.path.basename(f))
     return name
